@@ -1,0 +1,9 @@
+.Tilt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+}
