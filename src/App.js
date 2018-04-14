@@ -9,6 +9,8 @@ import Logo from './components/Logo/Logo';
 import Rank from './components/Rank/Rank';
 import ImgForm from './components/ImgForm/ImgForm';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import Login from './components/Login/Login';
+import Register from './components/Register/Register';
 
 // initialize with your api key. This will also work in your browser via http://browserify.org/
 
@@ -29,10 +31,6 @@ const particlesConfig = {
   interactivity: {
     detect_on: 'canvas',
     events: {
-      onhover: {
-        enable: true,
-        mode: 'repulse'
-      },
       onclick: {
         enable: true,
         mode: 'push'
@@ -40,10 +38,6 @@ const particlesConfig = {
       resize: true
     },
     modes: {
-      repulse: {
-        distance: 100,
-        duration: 0.2
-      },
       push: {
         particles_nb: 4
       }
@@ -57,6 +51,8 @@ class App extends Component {
     imgUrl: '',
     box: {},
     loading: false,
+    route: 'login',
+    signedIn: false,
     err: null
   };
 
@@ -83,6 +79,16 @@ class App extends Component {
 
   onInputChange = e => this.setState({ input: e.target.value });
 
+  onRouteChange = (e, route) => {
+    e.preventDefault();
+
+    if (route === 'login' || route === 'register') {
+      return this.setState({ route });
+    } else if (route === 'app') {
+      return this.setState({ route, signedIn: true });
+    }
+  };
+
   onSubmit = e => {
     e.preventDefault();
     e.stopPropagation();
@@ -105,19 +111,36 @@ class App extends Component {
   };
 
   render() {
+    let route;
+
+    if (this.state.route === 'app') {
+      route = (
+        <React.Fragment>
+          <Rank />
+          <ImgForm
+            onInputChange={this.onInputChange}
+            onSubmit={this.onSubmit}
+          />
+          <FaceRecognition
+            loading={this.state.loading}
+            box={this.state.box}
+            imgUrl={this.state.imgUrl}
+          />
+        </React.Fragment>
+      );
+    } else if (this.state.route === 'register') {
+      route = <Register onRouteChange={this.onRouteChange} />;
+    } else {
+      route = <Login onRouteChange={this.onRouteChange} />;
+    }
+
     console.log(this.state);
     return (
       <div className="App">
         <Particles className="particles" params={particlesConfig} />
-        <Nav />
+        <Nav onRouteChange={this.onRouteChange} route={this.state.route} />
         <Logo />
-        <Rank />
-        <ImgForm onInputChange={this.onInputChange} onSubmit={this.onSubmit} />
-        <FaceRecognition
-          loading={this.state.loading}
-          box={this.state.box}
-          imgUrl={this.state.imgUrl}
-        />
+        {route}
       </div>
     );
   }
