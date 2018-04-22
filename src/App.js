@@ -53,11 +53,22 @@ class App extends Component {
     loading: false,
     route: 'login',
     signedIn: false,
-    err: null
+    err: null,
+    user: {
+      id: '',
+      name: '',
+      email: '',
+      entries: 0,
+      joined: ''
+    }
   };
 
   // onInputChange = e =>
   // this.setState((state, props) => ({ input: e.target.value }));
+
+  loadUser = user => {
+    this.setState({ user });
+  };
 
   calculateFaceLocation = data => {
     const clarifaiFace =
@@ -80,8 +91,6 @@ class App extends Component {
   onInputChange = e => this.setState({ input: e.target.value });
 
   onRouteChange = (e, route) => {
-    e.preventDefault();
-
     if (route === 'login' || route === 'register') {
       return this.setState({ route });
     } else if (route === 'app') {
@@ -129,7 +138,9 @@ class App extends Component {
         </React.Fragment>
       );
     } else if (this.state.route === 'register') {
-      route = <Register onRouteChange={this.onRouteChange} />;
+      route = (
+        <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+      );
     } else {
       route = <Login onRouteChange={this.onRouteChange} />;
     }
