@@ -2,6 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+const knex = require('knex')({
+  client: 'pg',
+  connection: {
+    host: '127.0.0.1',
+    user: 'admin',
+    password: '',
+    database: 'facefinder'
+  }
+});
 
 const app = express();
 
@@ -42,6 +51,11 @@ app.get('/', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
+  // // Load hash from your password DB.
+  // bcrypt.compare('bacon', hash, function(err, res) {
+  //   // res == true
+  // });
+
   console.log(req.body);
   if (
     req.body.email === db.users[0].email &&
