@@ -12,13 +12,6 @@ const db = require('knex')({
   }
 });
 
-console.log(
-  db
-    .select('*')
-    .from('users')
-    .then(data => console.log(data))
-);
-
 const app = express();
 
 app.use(bodyParser.json());
@@ -37,42 +30,63 @@ app.get('/', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  // // Load hash from your password DB.
-  // bcrypt.compare('bacon', hash, function(err, res) {
-  //   // res == true
-  // });
+  const { email, pass } = req.body;
+  return db
+    .select('email', 'hash')
+    .from('login')
+    .where('email', '=', email)
+    .then(data => {
+      const isValid = bcrypt.compareSync(pass, data[0].hash);
 
-  console.log(req.body);
-  if (
-    req.body.email === db.users[0].email &&
-    req.body.pass === db.users[0].pass
-  ) {
-    res.json('success');
-  }
-  res.status(400).json('Error');
+      if (isValid) {
+        return db
+          .select('*')
+          .from('users')
+          .where('email', '=', email)
+          .then(user => res.json(user[0]))
+          .catch(err => res.status(400).json(err));
+      }
+      return res.status(400).json('Error happened');
+    })
+    .catch(err => res.status(400).json(err));
 });
 
 app.post('/register', (req, res) => {
   const { email, name, pass } = req.body;
+  const hash = bcrypt.hashSync(pass);
 
-  bcrypt.hash(pass, null, null, function(err, hash) {
-    // Store hash in your password DB.
-  });
-  db('users')
-    .returning('*')
-    .insert({
-      email,
-      name,
-      joined: new Date()
+  // bcrypt.compareSync(myPlaintextPassword, hash); // true
+
+  return db
+    .transaction(trx => {
+      trx
+        .insert({
+          hash,
+          email
+        })
+        .into('login')
+        .returning('email')
+        .then(mail =>
+          trx('users')
+            .returning('*')
+            .insert({
+              name,
+              email: mail[0],
+              joined: new Date()
+            })
+            .then(user => res.json(user[0]))
+            .catch(err => res.status(400).json(err))
+        )
+        .then(trx.commit)
+        .catch(trx.rollback);
     })
-    .then(user => res.json(user[0]))
     .catch(err => res.status(400).json(err));
 });
 
 app.get('/profile/:id', (req, res) => {
   const { id } = req.params;
 
-  db
+  return db
     .select('*')
     .from('users')
     .where('id', id)
@@ -86,7 +100,7 @@ app.get('/profile/:id', (req, res) => {
 app.put('/image', (req, res) => {
   const { id } = req.body;
 
-  db('users')
+  return db('users')
     .where('id', '=', id)
     .increment('entries', 1)
     .returning('entries')

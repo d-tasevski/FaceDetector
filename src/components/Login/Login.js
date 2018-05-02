@@ -32,11 +32,11 @@ class Login extends React.Component {
     })
       .then(res => res.json())
       .then(data => {
-        if (data === 'success') {
+        if (data.id) {
+          this.props.loadUser(data[0]);
           this.login(e);
         }
       });
-    console.log(this.state);
   };
 
   render() {

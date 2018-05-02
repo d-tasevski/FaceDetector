@@ -142,7 +142,9 @@ class App extends Component {
         <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
       );
     } else {
-      route = <Login onRouteChange={this.onRouteChange} />;
+      route = (
+        <Login loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+      );
     }
 
     console.log(this.state);
