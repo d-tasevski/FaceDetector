@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
-const knex = require('knex')({
+const db = require('knex')({
   client: 'pg',
   connection: {
     host: '127.0.0.1',
@@ -12,31 +12,17 @@ const knex = require('knex')({
   }
 });
 
+console.log(
+  db
+    .select('*')
+    .from('users')
+    .then(data => console.log(data))
+);
+
 const app = express();
 
 app.use(bodyParser.json());
 app.use(cors());
-
-const db = {
-  users: [
-    {
-      id: 123,
-      name: 'John',
-      email: 'john@john.com',
-      pass: 'secret',
-      entries: 0,
-      joined: new Date()
-    },
-    {
-      id: 1234,
-      name: 'Ann',
-      email: 'ann@ann.com',
-      pass: 'cake',
-      entries: 0,
-      joined: new Date()
-    }
-  ]
-};
 
 // // Load hash from your password DB.
 // bcrypt.compare('bacon', hash, function(err, res) {
@@ -72,16 +58,15 @@ app.post('/register', (req, res) => {
   bcrypt.hash(pass, null, null, function(err, hash) {
     // Store hash in your password DB.
   });
-
-  db.users.push({
-    id: 12345,
-    name: name,
-    email: email,
-    pass: pass,
-    entries: 0,
-    joined: new Date()
-  });
-  res.json(db.users[db.users.length - 1]);
+  db('users')
+    .returning('*')
+    .insert({
+      email,
+      name,
+      joined: new Date()
+    })
+    .then(user => res.json(user[0]))
+    .catch(err => res.status(400).json(err));
 });
 
 app.get('/profile/:id', (req, res) => {
